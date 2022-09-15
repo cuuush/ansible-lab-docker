@@ -32,15 +32,17 @@ Clone this git repository:
 
 ## Build images and run containers
 
-Enter **ansible** directory containing [docker-compose.yml](./ansible/docker-compose.yml) file.
+Build docker images. Base needs to be built first, due to parallel building in docker compose. (details defined in [docker-compose.yml](./ansible/docker-compose.yml)):
 
-Build docker images and run containers in the background (details defined in [docker-compose.yml](./ansible/docker-compose.yml)):
+`docker compose build base && docker compose build`
 
-`docker-compose up -d --build`
+Run docker containers in detached mode.
+
+`docker compose up -d`
 
 Connect to **master node**:
 
-`docker exec -it master01 bash`
+`docker compose exec master bash`
 
 Verify if network connection is working between master and managed hosts:
 
@@ -61,17 +63,11 @@ As **passphrase** enter: `12345`
 Default key passphrase can be changed in [ansible/master/Dockerfile](./ansible/master/Dockerfile)
 
 ## Ansible playbooks
+Playbooks are stored in /var/ans/playbooks. To add or change playbooks, simply modify the contents of the playbooks directory. Changes are bi-directional.
 
 Run a [sample ansible playbook](./ansible/master/ansible/ping_all.yml) that checks connection between master node and managed hosts:
 
 `ansible-playbook -i inventory ping_all.yml`
-
-Confirm _every_ new host for SSH connections:
-
-    ECDSA key fingerprint is SHA256:HwEUUnBtOm9hVAR2PJflNdCVchSCzIlpOpqYlwp+w+w.
-    Are you sure you want to continue connecting (yes/no)?
-
-Type: `yes` (three times)
 
 Install PHP on web **inventory group**:
 
@@ -83,17 +79,7 @@ Run a [sample ansible playbook](./ansible/master/ansible/install_php.yml):
 
 ## Copy data between local file system and containers
 
-### Copy directory from container to local file system
-
-`docker cp master01:/var/ans/ .`
-
-### Copy directory from local file system to container:
-
-`docker cp ./ans master01:/var/`
-
-You can check usage executing:
-
-`docker cp --help`
+The playbooks directory at the root of this project is linked to /var/ans/playbooks using a docker compose mount. Any changes made on either side are mirrored.
 
 ## Cleanup
 
@@ -101,20 +87,11 @@ After you are done with your experiments or want to destroy lab environment to b
 
 Stop containers:
 
-`docker-compose kill`
+`docker compose kill`
 
 Remove containers:
 
-`docker-compose rm`
-
-
-Remove volume:
-
-`docker volume rm ansible_ansible_vol`
-
-If you want you can remove Docker images (although that is not required to start new lab environment):
-
-`docker rmi ansible_host ansible_master ansible_base`
+`docker compose down -v`
 
 # Tips
 

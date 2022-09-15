@@ -3,17 +3,20 @@
 # use builded ansible_base (defined in ../base/Dockerfile) as a starting point
 FROM ansible_base:latest
 
-# install ansible package
-RUN apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
-    ansible
+RUN pip3 install ansible
 
-# copy content of ansible directory from local disk to file system inside Docker image
-COPY ansible /var/ans/
+COPY inventory /etc/ansible/hosts/inventory
 
-# change working directory
-WORKDIR /var/ans
+WORKDIR /var/ans/
 
 # generate RSA key pair to allow master to communicate with managed nodes
-# default private key passphrase is '12345' (not a good idea for production environment ;)
 RUN ssh-keygen -t rsa -N 12345 -C "master key" -f master_key
+
+
+COPY entrypoint.sh /var/
+
+RUN chmod 755 /var/entrypoint.sh
+
+ENTRYPOINT /var/entrypoint.sh
+
+
